@@ -144,7 +144,7 @@
                 <!-- Localização de Peças -->
                 <div class="col-span-12 md:col-span-5 space-y-4">
                     <h4 class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Localização dos Componentes</h4>
-                    <div id="os-components" class="space-y-2">
+                    <div id="os-components" class="space-y-2 max-h-80 overflow-y-auto custom-scroll pr-4">
                         <!-- Injetado via JS -->
                     </div>
                 </div>
@@ -304,14 +304,14 @@
                     return;
                 }
 
-                // 1. Popula Histórico de Eventos
+                // 1. Popula Histórico de Eventos (Sem exibir o setor para evitar 'undefined')
                 if (osDetails.event_history && osDetails.event_history.length > 0) {
                     historyContainer.innerHTML = osDetails.event_history.map(event => `
                         <div class="flex space-x-4 border-l-2 border-slate-100 pl-4 relative pb-4">
                             <div class="w-3 h-3 rounded-full bg-emerald-500 absolute -left-[7.5px] top-1"></div>
                             <div class="flex-1">
                                 <p class="text-xs font-black uppercase">${event.action}</p>
-                                <p class="text-[10px] text-slate-400">${new Date(event.timestamp).toLocaleString('pt-BR')} • Setor: ${event.sector}</p>
+                                <p class="text-[10px] text-slate-400">${new Date(event.timestamp).toLocaleString('pt-BR')}</p>
                             </div>
                         </div>
                     `).join('');
