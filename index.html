@@ -173,15 +173,24 @@
     </div>
 
     <script>
-        // MOCK DATA (Isso virá do seu Supabase/n8n conforme a arquitetura SQL que definimos)
-        const MOCK_OS = [
-            { id: 'PRE-101', mark: '---', model: 'BMW 320I', client: 'EUROFIX', status: 'Aguardando Liberação', color: 'bg-slate-100 text-slate-500' },
-            { id: 'ANA-201', mark: '---', model: 'AUDI A3', client: 'PRECISION', status: 'Aguardando Análise', color: 'bg-purple-100 text-purple-600' },
-            { id: 'VEN-301', mark: '---', model: 'VOLVO XC60', client: 'PREMIUM', status: 'Aguardando Vendas', color: 'bg-blue-100 text-blue-600' },
-            { id: 'OS-800', mark: '---', model: 'L200 TRITON', client: 'AGROSUL', status: 'Pronto', color: 'bg-emerald-100 text-emerald-600' }
-        ];
+        // CONFIGURAÇÕES DE API REAL (n8n)
+        const API_ALL_OS = 'https://webhook.mareflow.com.br/webhook/production/admin-all-os';
+        const API_USERS = 'https://webhook.mareflow.com.br/webhook/production/admin-users';
+        
+        let allOSData = []; // Armazena todas as OS vindas do banco
+        let allUsersData = [];
 
         const SETORES = ['ADMINISTRADOR', 'PRÉ-VENDAS', 'ANÁLISE TÉCNICA', 'VENDAS', 'TRIAGEM', 'DESMONTAGEM', 'RETÍFICA', 'SOLDA', 'METROLOGIA', 'BANCADA', 'MONTAGEM', 'CONTROLE DE QUALIDADE', 'EXPEDIÇÃO'];
+
+        // Função para definir cores de status dinamicamente
+        function getStatusStyle(status) {
+            const s = status.toLowerCase();
+            if (s.includes('aguardando') || s.includes('análise')) return 'bg-amber-100 text-amber-600';
+            if (s.includes('produção') || s.includes('montagem')) return 'bg-blue-100 text-blue-600';
+            if (s.includes('pronto') || s.includes('finalizado')) return 'bg-emerald-100 text-emerald-600';
+            if (s.includes('cancelado') || s.includes('bloqueado')) return 'bg-red-100 text-red-600';
+            return 'bg-slate-100 text-slate-500';
+        }
 
         // CONTROLE DE ABAS PRINCIPAIS
         function switchMainTab(btn, tabId) {
@@ -204,17 +213,41 @@
             renderOSTable(status);
         }
 
-        // RENDERIZAÇÃO DA TABELA DE OS
-        function renderOSTable(filter = 'curso') {
+        async function loadAdminData() {
             const body = document.getElementById('os-table-body');
-            // Aqui você aplicaria a lógica de filtragem real baseada no seu banco
-            body.innerHTML = MOCK_OS.map(os => `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="px-6 py-5 font-black text-slate-900">${os.id}</td>
-                    <td class="px-6 py-5 text-turbo-blue font-bold tracking-widest">${os.mark}</td>
-                    <td class="px-6 py-5 uppercase">${os.model}</td>
+            body.innerHTML = '<tr><td colspan="6" class="p-10 text-center animate-pulse">Sincronizando com Banco de Dados...</td></tr>';
+            
+            try {
+                const res = await fetch(API_ALL_OS);
+                allOSData = await res.json();
+                renderOSTable('curso');
+            } catch (e) {
+                body.innerHTML = '<tr><td colspan="6" class="p-10 text-center text-red-500">Erro ao carregar dados do servidor.</td></tr>';
+            }
+        }
+
+        function renderOSTable(filterType = 'curso') {
+            const body = document.getElementById('os-table-body');
+            
+            // Lógica de filtro: 'curso' (Ativas) vs 'concluida' (Finalizadas/Canceladas)
+            const filtered = allOSData.filter(os => {
+                const status = os.status.toLowerCase();
+                const isFinished = status.includes('pronto') || status.includes('entregue') || status.includes('cancelado');
+                return filterType === 'curso' ? !isFinished : isFinished;
+            });
+
+            if (filtered.length === 0) {
+                body.innerHTML = '<tr><td colspan="6" class="p-10 text-center text-slate-400 italic">Nenhuma ordem encontrada nesta categoria.</td></tr>';
+                return;
+            }
+
+            body.innerHTML = filtered.map(os => `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                    <td class="px-6 py-5 font-black text-slate-900">${os.business_id}</td>
+                    <td class="px-6 py-5 text-turbo-blue font-bold tracking-widest">${os.os_number || '---'}</td>
+                    <td class="px-6 py-5 uppercase font-bold text-slate-700">${os.model}</td>
                     <td class="px-6 py-5 font-medium opacity-60">${os.client}</td>
-                    <td class="px-6 py-5"><span class="status-badge ${os.color}">${os.status}</span></td>
+                    <td class="px-6 py-5"><span class="status-badge ${getStatusStyle(os.status)}">${os.status}</span></td>
                     <td class="px-6 py-5 text-right">
                         <button onclick="openDetails('${os.id}')" class="text-[10px] font-black text-turbo-blue uppercase border-b-2 border-transparent hover:border-turbo-blue transition">Detalhes</button>
                     </td>
@@ -284,7 +317,11 @@
 
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         
-        window.onload = () => { renderOSTable(); };
+        window.onload = () => { 
+            loadAdminData(); 
+            // Atualiza a cada 2 minutos
+            setInterval(loadAdminData, 120000);
+        };
     </script>
 </body>
 </html>
