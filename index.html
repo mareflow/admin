@@ -280,28 +280,62 @@
         }
 
         // MODAL ACTIONS
-        function openDetails(id) {
-            document.getElementById('modal-os-id').innerText = id;
-            document.getElementById('modalDetails').classList.remove('hidden');
-            
-            // Mock do Histórico vindo da tabela history_events
-            document.getElementById('os-history').innerHTML = `
-                <div class="flex space-x-4 border-l-2 border-slate-100 pl-4 relative pb-4">
-                    <div class="w-3 h-3 rounded-full bg-emerald-500 absolute -left-[7.5px] top-1"></div>
-                    <div class="flex-1">
-                        <p class="text-xs font-black uppercase">Ordem Finalizada</p>
-                        <p class="text-[10px] text-slate-400">Há 2 horas • Colaborador: João Silva</p>
-                    </div>
-                </div>
-            `;
+        // URL DO SEU NOVO WORKFLOW N8N
+        const API_OS_DETAILS = 'https://webhook.mareflow.com.br/webhook/production/admin-os-details';
 
-            // Mock de Componentes vindo da component_tracking
-            document.getElementById('os-components').innerHTML = ['EIXO', 'CCO', 'ROTOR'].map(c => `
-                <div class="bg-slate-50 p-3 rounded-xl flex justify-between items-center border border-slate-100">
-                    <span class="text-xs font-black uppercase">${c}</span>
-                    <span class="text-[9px] bg-white border px-2 py-1 rounded-full font-black text-slate-400 uppercase">Expedição</span>
-                </div>
-            `).join('');
+        async function openDetails(os_id) {
+            document.getElementById('modal-os-id').innerText = os_id;
+            document.getElementById('modalDetails').classList.remove('hidden');
+
+            const historyContainer = document.getElementById('os-history');
+            const componentsContainer = document.getElementById('os-components');
+            
+            historyContainer.innerHTML = '<div class="p-4 text-center text-slate-400 italic">Carregando histórico...</div>';
+            componentsContainer.innerHTML = '<div class="p-4 text-center text-slate-400 italic">Carregando componentes...</div>';
+
+            try {
+                const response = await fetch(`${API_OS_DETAILS}?os_id=${os_id}`);
+                const data = await response.json();
+                const osDetails = Array.isArray(data) ? data[0] : data; // A View pode retornar um array de 1 item
+
+                if (!osDetails) {
+                    historyContainer.innerHTML = '<div class="p-4 text-center text-red-500">Detalhes não encontrados.</div>';
+                    componentsContainer.innerHTML = '';
+                    return;
+                }
+
+                // 1. Popula Histórico de Eventos
+                if (osDetails.event_history && osDetails.event_history.length > 0) {
+                    historyContainer.innerHTML = osDetails.event_history.map(event => `
+                        <div class="flex space-x-4 border-l-2 border-slate-100 pl-4 relative pb-4">
+                            <div class="w-3 h-3 rounded-full bg-emerald-500 absolute -left-[7.5px] top-1"></div>
+                            <div class="flex-1">
+                                <p class="text-xs font-black uppercase">${event.action}</p>
+                                <p class="text-[10px] text-slate-400">${new Date(event.timestamp).toLocaleString('pt-BR')} • Setor: ${event.sector}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    historyContainer.innerHTML = '<div class="p-4 text-center text-slate-400 italic">Nenhum evento registrado.</div>';
+                }
+
+                // 2. Popula Localização de Peças
+                if (osDetails.components_tracking && osDetails.components_tracking.length > 0) {
+                    componentsContainer.innerHTML = osDetails.components_tracking.map(comp => `
+                        <div class="bg-slate-50 p-3 rounded-xl flex justify-between items-center border border-slate-100">
+                            <span class="text-xs font-black uppercase">${comp.component}</span>
+                            <span class="text-[9px] bg-white border px-2 py-1 rounded-full font-black text-slate-400 uppercase">${comp.stage}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    componentsContainer.innerHTML = '<div class="p-4 text-center text-slate-400 italic">Nenhum componente rastreado.</div>';
+                }
+
+            } catch (e) {
+                console.error("Erro ao carregar detalhes da OS:", e);
+                historyContainer.innerHTML = '<div class="p-4 text-center text-red-500">Falha ao buscar detalhes.</div>';
+                componentsContainer.innerHTML = '';
+            }
         }
 
         function openPermissions(userName) {
