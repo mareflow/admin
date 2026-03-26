@@ -1,1 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo | TurboSul</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .bg-turbo-teal { background-color: #0D9488; }
+        .text-turbo-teal { color: #0D9488; }
+        .bg-turbo-blue { background-color: #2563EB; }
+        .text-turbo-blue { color: #2563EB; }
+        .tab-active { border-bottom: 3px solid #2563EB; color: #2563EB; font-weight: 800; }
+        .status-badge { padding: 4px 12px; border-radius: 99px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
 
+    <!-- HEADER -->
+    <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center space-x-4">
+            <img src="https://i.postimg.cc/Jh5Jvrc9/IMG-7901.png" alt="TurboSul Logo" class="h-10">
+            <div>
+                <h1 class="text-xl font-black tracking-tight text-slate-900 uppercase italic">TurboSul - Controle de Produção</h1>
+                <p class="text-xs text-slate-500 font-medium italic">Gerenciamento de Ordens de Serviço</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-6">
+            <button class="bg-blue-100 text-turbo-blue px-6 py-2 rounded-xl text-sm font-bold hover:bg-blue-200 transition shadow-sm">Quadro de Produção</button>
+            <div class="text-right border-l pl-6 border-slate-200">
+                <p class="text-sm font-bold">Administrador</p>
+                <p class="text-[10px] text-slate-400 font-black uppercase tracking-wider">Gestão Central</p>
+            </div>
+            <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition">Sair</button>
+        </div>
+    </header>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="bg-white border-b border-slate-200 px-8">
+        <div class="flex space-x-12">
+            <button onclick="switchMainTab(this, 'gestao')" class="main-tab tab-active py-4 text-[11px] font-black uppercase tracking-widest transition-all">Visão Geral / Gestão</button>
+            <button onclick="switchMainTab(this, 'metricas')" class="main-tab text-slate-400 py-4 text-[11px] font-black uppercase tracking-widest transition-all">Métricas Individuais</button>
+            <button onclick="switchMainTab(this, 'assistente')" class="main-tab text-slate-400 py-4 text-[11px] font-black uppercase tracking-widest transition-all">Assistente IA</button>
+            <button onclick="switchMainTab(this, 'permissoes')" class="main-tab text-slate-400 py-4 text-[11px] font-black uppercase tracking-widest transition-all">Permissões</button>
+        </div>
+    </nav>
+
+    <main class="p-8">
+        
+        <!-- ABA: GESTÃO DE ORDENS -->
+        <section id="content-gestao" class="main-content space-y-6">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <div class="flex items-center space-x-4">
+                        <h2 id="gestao-title" class="text-xl font-black uppercase tracking-tighter italic">Gestão de Ordens Ativas</h2>
+                        <div class="flex bg-slate-200 p-1 rounded-xl">
+                            <button onclick="filterOSStatus('curso')" id="btn-filtro-curso" class="px-4 py-1.5 rounded-lg text-[10px] font-black uppercase bg-white shadow-sm transition">Em Curso</button>
+                            <button onclick="filterOSStatus('concluida')" id="btn-filtro-concluidas" class="px-4 py-1.5 rounded-lg text-[10px] font-black text-slate-500 hover:text-slate-700 transition">Concluídas/Canc</button>
+                        </div>
+                    </div>
+                    <div class="relative w-96">
+                        <input type="text" placeholder="Pesquisar por OS, ID ou Cliente..." class="w-full bg-slate-800 text-white rounded-xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-turbo-blue">
+                        <i class="fa-solid fa-magnifying-glass absolute right-4 top-3.5 text-slate-500"></i>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[10px] font-black uppercase text-slate-400 bg-slate-50/30">
+                                <th class="px-6 py-4">OS / Orçamento</th>
+                                <th class="px-6 py-4">Marcação (ID)</th>
+                                <th class="px-6 py-4">Modelo</th>
+                                <th class="px-6 py-4">Cliente</th>
+                                <th class="px-6 py-4">Status Atual</th>
+                                <th class="px-6 py-4 text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="os-table-body" class="divide-y divide-slate-100 text-sm font-medium text-slate-600">
+                            <!-- Gerado via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA: MÉTRICAS (IN DEVELOPMENT) -->
+        <section id="content-metricas" class="main-content hidden">
+            <div class="h-96 flex flex-col items-center justify-center bg-white rounded-3xl border-2 border-dashed border-slate-200 text-slate-400">
+                <i class="fa-solid fa-chart-line text-6xl mb-4 opacity-20"></i>
+                <p class="font-black uppercase tracking-widest italic">Em breve: Dashboards de Produtividade Individual</p>
+            </div>
+        </section>
+
+        <!-- ABA: ASSISTENTE IA (IN DEVELOPMENT) -->
+        <section id="content-assistente" class="main-content hidden">
+            <div class="h-96 flex flex-col items-center justify-center bg-white rounded-3xl border-2 border-dashed border-slate-200 text-slate-400">
+                <i class="fa-solid fa-robot text-6xl mb-4 opacity-20"></i>
+                <p class="font-black uppercase tracking-widest italic">Assistente IA: Consultoria de Peças e Diagnóstico em desenvolvimento</p>
+            </div>
+        </section>
+
+        <!-- ABA: PERMISSÕES -->
+        <section id="content-permissoes" class="main-content hidden">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="text-[10px] font-black uppercase text-slate-400 bg-slate-50/30">
+                            <th class="px-6 py-6">Colaborador</th>
+                            <th class="px-6 py-6">Login</th>
+                            <th class="px-6 py-6">Setores Permitidos</th>
+                            <th class="px-6 py-6 text-right">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body" class="divide-y divide-slate-100 text-sm font-bold text-slate-700">
+                        <!-- Gerado via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL DETALHES OS -->
+    <div id="modalDetails" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden">
+            <div class="p-6 bg-slate-50 border-b flex justify-between items-center">
+                <h3 class="font-black text-slate-800 uppercase italic">Detalhes da Ordem de Serviço: <span id="modal-os-id" class="text-turbo-blue">---</span></h3>
+                <button onclick="closeModal('modalDetails')" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
+            </div>
+            <div class="p-8 grid grid-cols-12 gap-8">
+                <!-- Timeline/Histórico -->
+                <div class="col-span-12 md:col-span-7 space-y-4">
+                    <h4 class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Histórico de Eventos</h4>
+                    <div id="os-history" class="space-y-3 max-h-80 overflow-y-auto custom-scroll pr-4">
+                        <!-- Injetado via JS -->
+                    </div>
+                </div>
+                <!-- Localização de Peças -->
+                <div class="col-span-12 md:col-span-5 space-y-4">
+                    <h4 class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Localização dos Componentes</h4>
+                    <div id="os-components" class="space-y-2">
+                        <!-- Injetado via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PERMISSÕES -->
+    <div id="modalPerm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden">
+            <div class="p-6 bg-slate-50 border-b flex justify-between items-center">
+                <h3 class="font-black text-slate-800 uppercase italic">Editar Permissões: <span id="modal-user-name" class="text-turbo-blue">---</span></h3>
+                <button onclick="closeModal('modalPerm')" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
+            </div>
+            <div class="p-8 space-y-6">
+                <p class="text-[10px] font-black text-turbo-blue uppercase tracking-widest">Selecione os setores permitidos</p>
+                <div id="permissions-grid" class="grid grid-cols-2 gap-3">
+                    <!-- Gerado via JS -->
+                </div>
+                <div class="flex justify-end space-x-3 pt-6 border-t">
+                    <button onclick="closeModal('modalPerm')" class="px-6 py-3 bg-slate-100 text-slate-500 font-black rounded-xl uppercase text-[10px]">Cancelar</button>
+                    <button onclick="savePermissions()" class="px-8 py-3 bg-turbo-blue text-white font-black rounded-xl uppercase text-[10px] shadow-lg">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // MOCK DATA (Isso virá do seu Supabase/n8n conforme a arquitetura SQL que definimos)
+        const MOCK_OS = [
+            { id: 'PRE-101', mark: '---', model: 'BMW 320I', client: 'EUROFIX', status: 'Aguardando Liberação', color: 'bg-slate-100 text-slate-500' },
+            { id: 'ANA-201', mark: '---', model: 'AUDI A3', client: 'PRECISION', status: 'Aguardando Análise', color: 'bg-purple-100 text-purple-600' },
+            { id: 'VEN-301', mark: '---', model: 'VOLVO XC60', client: 'PREMIUM', status: 'Aguardando Vendas', color: 'bg-blue-100 text-blue-600' },
+            { id: 'OS-800', mark: '---', model: 'L200 TRITON', client: 'AGROSUL', status: 'Pronto', color: 'bg-emerald-100 text-emerald-600' }
+        ];
+
+        const SETORES = ['ADMINISTRADOR', 'PRÉ-VENDAS', 'ANÁLISE TÉCNICA', 'VENDAS', 'TRIAGEM', 'DESMONTAGEM', 'RETÍFICA', 'SOLDA', 'METROLOGIA', 'BANCADA', 'MONTAGEM', 'CONTROLE DE QUALIDADE', 'EXPEDIÇÃO'];
+
+        // CONTROLE DE ABAS PRINCIPAIS
+        function switchMainTab(btn, tabId) {
+            document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('tab-active', 'text-slate-400'));
+            btn.classList.add('tab-active');
+            
+            document.querySelectorAll('.main-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`content-${tabId}`).classList.remove('hidden');
+
+            if(tabId === 'gestao') renderOSTable();
+            if(tabId === 'permissoes') renderUsersTable();
+        }
+
+        // FILTRO DE STATUS (EM CURSO VS CONCLUÍDAS)
+        function filterOSStatus(status) {
+            const isCurso = status === 'curso';
+            document.getElementById('gestao-title').innerText = isCurso ? 'Gestão de Ordens Ativas' : 'Arquivo de Ordens';
+            document.getElementById('btn-filtro-curso').className = isCurso ? 'px-4 py-1.5 rounded-lg text-[10px] font-black uppercase bg-white shadow-sm' : 'px-4 py-1.5 rounded-lg text-[10px] font-black text-slate-500 hover:text-slate-700';
+            document.getElementById('btn-filtro-concluidas').className = !isCurso ? 'px-4 py-1.5 rounded-lg text-[10px] font-black uppercase bg-white shadow-sm' : 'px-4 py-1.5 rounded-lg text-[10px] font-black text-slate-500 hover:text-slate-700';
+            renderOSTable(status);
+        }
+
+        // RENDERIZAÇÃO DA TABELA DE OS
+        function renderOSTable(filter = 'curso') {
+            const body = document.getElementById('os-table-body');
+            // Aqui você aplicaria a lógica de filtragem real baseada no seu banco
+            body.innerHTML = MOCK_OS.map(os => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="px-6 py-5 font-black text-slate-900">${os.id}</td>
+                    <td class="px-6 py-5 text-turbo-blue font-bold tracking-widest">${os.mark}</td>
+                    <td class="px-6 py-5 uppercase">${os.model}</td>
+                    <td class="px-6 py-5 font-medium opacity-60">${os.client}</td>
+                    <td class="px-6 py-5"><span class="status-badge ${os.color}">${os.status}</span></td>
+                    <td class="px-6 py-5 text-right">
+                        <button onclick="openDetails('${os.id}')" class="text-[10px] font-black text-turbo-blue uppercase border-b-2 border-transparent hover:border-turbo-blue transition">Detalhes</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // RENDERIZAÇÃO DA TABELA DE USUÁRIOS/PERMISSÕES
+        function renderUsersTable() {
+            const body = document.getElementById('users-table-body');
+            const mockUsers = [{ name: 'Administrador', login: 'admin', roles: SETORES }];
+            body.innerHTML = mockUsers.map(user => `
+                <tr>
+                    <td class="px-6 py-5 flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-full bg-turbo-blue text-white flex items-center justify-center text-[10px]">A</div>
+                        <span>${user.name}</span>
+                    </td>
+                    <td class="px-6 py-5"><span class="bg-blue-50 text-turbo-blue px-3 py-1 rounded-md text-xs font-mono">${user.login}</span></td>
+                    <td class="px-6 py-5">
+                        <div class="flex flex-wrap gap-2">
+                            ${user.roles.slice(0, 3).map(r => `<span class="bg-slate-100 text-slate-500 text-[8px] font-black px-2 py-0.5 rounded uppercase">${r}</span>`).join('')}
+                            ${user.roles.length > 3 ? `<span class="bg-slate-100 text-slate-500 text-[8px] font-black px-2 py-0.5 rounded uppercase">+${user.roles.length - 3}</span>` : ''}
+                        </div>
+                    </td>
+                    <td class="px-6 py-5 text-right">
+                        <button onclick="openPermissions('${user.name}')" class="text-turbo-blue text-[10px] font-black uppercase hover:underline">Editar Permissões</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // MODAL ACTIONS
+        function openDetails(id) {
+            document.getElementById('modal-os-id').innerText = id;
+            document.getElementById('modalDetails').classList.remove('hidden');
+            
+            // Mock do Histórico vindo da tabela history_events
+            document.getElementById('os-history').innerHTML = `
+                <div class="flex space-x-4 border-l-2 border-slate-100 pl-4 relative pb-4">
+                    <div class="w-3 h-3 rounded-full bg-emerald-500 absolute -left-[7.5px] top-1"></div>
+                    <div class="flex-1">
+                        <p class="text-xs font-black uppercase">Ordem Finalizada</p>
+                        <p class="text-[10px] text-slate-400">Há 2 horas • Colaborador: João Silva</p>
+                    </div>
+                </div>
+            `;
+
+            // Mock de Componentes vindo da component_tracking
+            document.getElementById('os-components').innerHTML = ['EIXO', 'CCO', 'ROTOR'].map(c => `
+                <div class="bg-slate-50 p-3 rounded-xl flex justify-between items-center border border-slate-100">
+                    <span class="text-xs font-black uppercase">${c}</span>
+                    <span class="text-[9px] bg-white border px-2 py-1 rounded-full font-black text-slate-400 uppercase">Expedição</span>
+                </div>
+            `).join('');
+        }
+
+        function openPermissions(userName) {
+            document.getElementById('modal-user-name').innerText = userName;
+            document.getElementById('permissions-grid').innerHTML = SETORES.map(s => `
+                <label class="flex items-center space-x-3 p-3 bg-slate-50 rounded-xl border-2 border-transparent hover:border-turbo-blue cursor-pointer transition">
+                    <input type="checkbox" checked class="w-5 h-5 rounded border-slate-300 text-turbo-blue focus:ring-turbo-blue">
+                    <span class="text-[10px] font-black uppercase text-slate-600">${s}</span>
+                </label>
+            `).join('');
+            document.getElementById('modalPerm').classList.remove('hidden');
+        }
+
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        
+        window.onload = () => { renderOSTable(); };
+    </script>
+</body>
+</html>
