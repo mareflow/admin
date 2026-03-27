@@ -225,10 +225,18 @@
         function renderOSTable(filterType = 'curso') {
             const body = document.getElementById('os-table-body');
             
-            // Lógica de filtro: 'curso' (Ativas) vs 'concluida' (Finalizadas/Canceladas)
+            // Lógica de filtro atualizada para incluir status "Concluída"
             const filtered = allOSData.filter(os => {
+                if (!os.status) return filterType === 'curso';
                 const status = os.status.toLowerCase();
-                const isFinished = status.includes('pronto') || status.includes('entregue') || status.includes('cancelado');
+                
+                // Lista de termos que definem uma OS como finalizada
+                const isFinished = status.includes('concluida') || 
+                                   status.includes('concluída') || 
+                                   status.includes('pronto') || 
+                                   status.includes('entregue') || 
+                                   status.includes('cancelado');
+
                 return filterType === 'curso' ? !isFinished : isFinished;
             });
 
